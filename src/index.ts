@@ -1,6 +1,3 @@
-// Core PGMQ functions (for advanced usage)
-export * from './pgmq';
-
 // Prisma Client extension (recommended)
 export { default as pgmqExtension } from './pgmq-extension';
 
