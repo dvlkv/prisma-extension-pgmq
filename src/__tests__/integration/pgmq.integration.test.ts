@@ -7,22 +7,14 @@ import {
   sendBatch,
   read,
   readWithPoll,
-  pop,
   deleteMessage,
-  purgeQueue,
   archive,
-  archiveBatch,
   createQueue,
-  createPartitionedQueue,
-  createUnloggedQueue,
-  detachArchive,
   dropQueue,
   setVt,
   listQueues,
   metrics,
-  metricsAll,
   type Task,
-  deleteBatch
 } from '../../pgmq';
 
 describe('PGMQ Integration Tests (requires database)', () => {

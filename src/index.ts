@@ -1,5 +1,8 @@
-// Main exports
+// Core PGMQ functions (for advanced usage)
 export * from './pgmq';
+
+// Prisma Client extension (recommended)
+export { default as pgmqExtension } from './pgmq-extension';
 
 // Type exports
 export type {
@@ -7,7 +10,4 @@ export type {
   MessageRecord,
   QueueMetrics,
   QueueInfo,
-} from './pgmq';
-
-// Re-export for convenience
-export { PrismaPGMQ } from './client';
+} from './pgmq-extension';

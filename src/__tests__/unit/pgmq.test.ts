@@ -2,13 +2,12 @@ import { setupMockPrismaWithCapture, mockData } from '../mocks/prisma.mock';
 import * as pgmq from '../../pgmq';
 
 describe('PGMQ Unit Tests', () => {
-  let mockPrisma: any;
+
   let queryCapture: any;
   let mockTx: any;
 
   beforeEach(() => {
     const setup = setupMockPrismaWithCapture();
-    mockPrisma = setup.prisma;
     queryCapture = setup.queryCapture;
     mockTx = setup.mockTx;
   });
