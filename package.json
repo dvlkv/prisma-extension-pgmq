@@ -1,6 +1,6 @@
 {
   "name": "prisma-extension-pgmq",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A Prisma Client extension for PostgreSQL Message Queue (PGMQ) providing type-safe message queue operations",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
