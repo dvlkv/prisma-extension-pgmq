@@ -24,6 +24,25 @@ yarn add prisma-pgmq
 - Prisma Client v5.0.0 or higher
 - Node.js 16+ 
 
+> **Enabling the PGMQ extension via Prisma**
+>
+> You can manage PostgreSQL extensions (including PGMQ) directly in your Prisma schema using the `postgresqlExtensions` preview feature. Add the extension to your `datasource` block in `schema.prisma`:
+>
+> ```prisma
+> generator client {
+>   provider        = "prisma-client-js"
+>   previewFeatures = ["postgresqlExtensions"]
+> }
+>
+> datasource db {
+>   provider   = "postgresql"
+>   url        = env("DATABASE_URL")
+>   extensions = [pgmq]
+> }
+> ```
+>
+> For more details, see the [Prisma documentation on PostgreSQL extensions](https://www.prisma.io/docs/orm/prisma-schema/postgresql-extensions).
+
 ## Quick Start
 
 ### Functional API
@@ -35,18 +54,13 @@ import { pgmq } from 'prisma-pgmq';
 const prisma = new PrismaClient();
 
 // Create a queue
-await prisma.$transaction(async (tx) => {
-  await pgmq.createQueue(tx, 'my-work-queue');
-});
+await pgmq.createQueue(prisma, 'my-work-queue');
 
 // Send a message
-await prisma.$transaction(async (tx) => {
-  const msgId = await pgmq.send(tx, 'my-work-queue', {
-    userId: 123,
-    action: 'send-email',
-    email: 'user@example.com'
-  });
-  console.log('Message sent with ID:', msgId);
+await pgmq.send(prisma, 'my-work-queue', {
+  userId: 123,
+  action: 'send-email',
+  email: 'user@example.com'
 });
 ```
 
@@ -54,162 +68,161 @@ await prisma.$transaction(async (tx) => {
 
 ### Message Operations
 
-#### `send(queueName, message, delay?)`
+#### `send(tx, queueName, message, delay?)`
 Send a single message to a queue.
 
 ```typescript
-// Send immediately
-const msgId = await prisma.$pgmq.send('my-queue', { data: 'hello' });
+const msgId = await pgmq.send(tx, 'my-queue', { data: 'hello' });
 
 // Send with delay (seconds)
-const msgId = await prisma.$pgmq.send('my-queue', { data: 'hello' }, 30);
+const msgId = await pgmq.send(tx, 'my-queue', { data: 'hello' }, 30);
 
 // Send with specific time
-const msgId = await prisma.$pgmq.send('my-queue', { data: 'hello' }, new Date('2024-01-01T10:00:00Z'));
+tx, 'my-queue', { data: 'hello' }, new Date('2024-01-01T10:00:00Z'));
 ```
 
-#### `sendBatch(queueName, messages, delay?)`
+#### `sendBatch(tx, queueName, messages, delay?)`
 Send multiple messages to a queue in a single operation.
 
 ```typescript
-const msgIds = await prisma.$pgmq.sendBatch('my-queue', [
+const msgIds = await pgmq.sendBatch(tx, 'my-queue', [
   { id: 1, data: 'message 1' },
   { id: 2, data: 'message 2' },
   { id: 3, data: 'message 3' }
 ]);
 ```
 
-#### `read(queueName, vt, qty?, conditional?)`
+#### `read(tx, queueName, vt, qty?, conditional?)`
 Read messages from a queue with visibility timeout.
 
 ```typescript
 // Read up to 5 messages with 30 second visibility timeout
-const messages = await prisma.$pgmq.read('my-queue', 30, 5);
+const messages = await pgmq.read(tx, 'my-queue', 30, 5);
 
 // Read with conditional filtering
-const messages = await prisma.$pgmq.read('my-queue', 30, 5, { priority: 'high' });
+const messages = await pgmq.read(tx, 'my-queue', 30, 5, { priority: 'high' });
 ```
 
-#### `readWithPoll(queueName, vt, qty?, maxPollSeconds?, pollIntervalMs?, conditional?)`
+#### `readWithPoll(tx, queueName, vt, qty?, maxPollSeconds?, pollIntervalMs?, conditional?)`
 Read messages with polling (wait for messages if none available).
 
 ```typescript
 // Poll for up to 10 seconds, checking every 500ms
-const messages = await prisma.$pgmq.readWithPoll('my-queue', 30, 1, 10, 500);
+const messages = await pgmq.readWithPoll(tx, 'my-queue', 30, 1, 10, 500);
 ```
 
-#### `pop(queueName)`
+#### `pop(tx, queueName)`
 Read and immediately delete a message (atomic operation).
 
 ```typescript
-const messages = await prisma.$pgmq.pop('my-queue');
+const messages = await pgmq.pop(tx, 'my-queue');
 ```
 
 ### Message Management
 
-#### `deleteMessage(queueName, msgId)`
+#### `deleteMessage(tx, queueName, msgId)`
 Delete a specific message.
 
 ```typescript
-const deleted = await prisma.$pgmq.deleteMessage('my-queue', 123);
+const deleted = await pgmq.deleteMessage(tx, 'my-queue', 123);
 ```
 
-#### `deleteBatch(queueName, msgIds)`
+#### `deleteBatch(tx, queueName, msgIds)`
 Delete multiple messages.
 
 ```typescript
-const deletedIds = await prisma.$pgmq.deleteBatch('my-queue', [123, 124, 125]);
+const deletedIds = await pgmq.deleteBatch(tx, 'my-queue', [123, 124, 125]);
 ```
 
-#### `archive(queueName, msgId)`
+#### `archive(tx, queueName, msgId)`
 Archive a message (move to archive table).
 
 ```typescript
-const archived = await prisma.$pgmq.archive('my-queue', 123);
+const archived = await pgmq.archive(tx, 'my-queue', 123);
 ```
 
-#### `archiveBatch(queueName, msgIds)`
+#### `archiveBatch(tx, queueName, msgIds)`
 Archive multiple messages.
 
 ```typescript
-const archivedIds = await prisma.$pgmq.archiveBatch('my-queue', [123, 124, 125]);
+const archivedIds = await pgmq.archiveBatch(tx, 'my-queue', [123, 124, 125]);
 ```
 
 ### Queue Management
 
-#### `createQueue(queueName)`
+#### `createQueue(tx, queueName)`
 Create a new queue.
 
 ```typescript
-await prisma.$pgmq.createQueue('my-new-queue');
+await pgmq.createQueue(tx, 'my-new-queue');
 ```
 
-#### `createPartitionedQueue(queueName, partitionInterval?, retentionInterval?)`
+#### `createPartitionedQueue(tx, queueName, partitionInterval?, retentionInterval?)`
 Create a partitioned queue for high-throughput scenarios.
 
 ```typescript
-await prisma.$pgmq.createPartitionedQueue('high-volume-queue', '10000', '100000');
+await pgmq.createPartitionedQueue(tx, 'high-volume-queue', '10000', '100000');
 ```
 
-#### `createUnloggedQueue(queueName)`
+#### `createUnloggedQueue(tx, queueName)`
 Create an unlogged queue (better performance, less durability).
 
 ```typescript
-await prisma.$pgmq.createUnloggedQueue('temp-queue');
+await pgmq.createUnloggedQueue(tx, 'temp-queue');
 ```
 
-#### `dropQueue(queueName)`
+#### `dropQueue(tx, queueName)`
 Delete a queue and all its messages.
 
 ```typescript
-const dropped = await prisma.$pgmq.dropQueue('old-queue');
+const dropped = await pgmq.dropQueue(tx, 'old-queue');
 ```
 
-#### `purgeQueue(queueName)`
+#### `purgeQueue(tx, queueName)`
 Remove all messages from a queue.
 
 ```typescript
-const messageCount = await prisma.$pgmq.purgeQueue('my-queue');
+const messageCount = await pgmq.purgeQueue(tx, 'my-queue');
 ```
 
 ### Utilities
 
-#### `setVt(queueName, msgId, vtOffset)`
+#### `setVt(tx, queueName, msgId, vtOffset)`
 Set visibility timeout for a specific message.
 
 ```typescript
-const message = await prisma.$pgmq.setVt('my-queue', 123, 60); // 60 seconds
+const message = await pgmq.setVt(tx, 'my-queue', 123, 60); // 60 seconds
 ```
 
-#### `listQueues()`
+#### `listQueues(tx)`
 Get information about all queues.
 
 ```typescript
-const queues = await prisma.$pgmq.listQueues();
+const queues = await pgmq.listQueues(tx);
 console.log(queues); // [{ queue_name: 'my-queue', created_at: ..., is_partitioned: false }]
 ```
 
-#### `metrics(queueName)`
+#### `metrics(tx, queueName)`
 Get metrics for a specific queue.
 
 ```typescript
-const metrics = await prisma.$pgmq.metrics('my-queue');
+const metrics = await pgmq.metrics(tx, 'my-queue');
 console.log(metrics);
 // {
 //   queue_name: 'my-queue',
-//   queue_length: 5n,
+//   queue_length: 5,
 //   newest_msg_age_sec: 10,
 //   oldest_msg_age_sec: 300,
-//   total_messages: 1000n,
+//   total_messages: 1000,
 //   scrape_time: 2024-01-01T10:00:00.000Z
 // }
 ```
 
-#### `metricsAll()`
+#### `metricsAll(tx)`
 Get metrics for all queues.
 
 ```typescript
-const allMetrics = await prisma.$pgmq.metricsAll();
+const allMetrics = await pgmq.metricsAll(tx);
 ```
 
 ## Type Definitions
@@ -296,33 +309,27 @@ const prisma = new PrismaClient();
 
 // Producer
 async function sendTask(taskData: any) {
-  await prisma.$transaction(async (tx) => {
-    await pgmq.send(tx, 'work-queue', {
-      type: 'process-user-data',
-      data: taskData,
-      timestamp: Date.now()
-    });
+  await pgmq.send(prisma, 'work-queue', {
+    type: 'process-user-data',
+    data: taskData,
+    timestamp: Date.now()
   });
 }
 
 // Consumer
 async function processMessages() {
-  while (true) {
-    await prisma.$transaction(async (tx) => {
-      const messages = await pgmq.readWithPoll(tx, 'work-queue', 30, 5, 10, 1000);
-      for (const message of messages) {
-        try {
-          // Process the message
-          await handleTask(message.message);
-          // Delete on success
-          await pgmq.deleteMessage(tx, 'work-queue', message.msg_id);
-        } catch (error) {
-          console.error('Task failed:', error);
-          // Archive failed messages for later analysis
-          await pgmq.archive(tx, 'work-queue', message.msg_id);
-        }
-      }
-    });
+  const messages = await pgmq.readWithPoll(prisma, 'work-queue', 30, 5, 10, 1000);
+  for (const message of messages) {
+    try {
+      // Process the message
+      await handleTask(message.message);
+      // Delete on success
+      await pgmq.deleteMessage(prisma, 'work-queue', message.msg_id);
+    } catch (error) {
+      console.error('Task failed:', error);
+      // Archive failed messages for later analysis
+      await pgmq.archive(prisma, 'work-queue', message.msg_id);
+    }
   }
 }
 
@@ -338,30 +345,11 @@ async function handleTask(task: any) {
 // Schedule a message for later processing
 const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-await prisma.$pgmq.send('scheduled-tasks', {
+await pgmq.send(prisma, 'scheduled-tasks', {
   type: 'send-reminder',
   userId: 123,
   reminder: 'Your subscription expires tomorrow'
 }, futureDate);
-```
-
-### Priority Queue Pattern
-
-```typescript
-// Send high-priority message
-await prisma.$pgmq.send('tasks', {
-  priority: 'high',
-  type: 'urgent-processing',
-  data: urgentData
-});
-
-// Read high-priority messages first
-const highPriorityMessages = await prisma.$pgmq.read('tasks', 30, 10, { priority: 'high' });
-
-if (highPriorityMessages.length === 0) {
-  // Fall back to normal priority
-  const normalMessages = await prisma.$pgmq.read('tasks', 30, 10, { priority: 'normal' });
-}
 ```
 
 ## Contributing
@@ -376,7 +364,7 @@ if (highPriorityMessages.length === 0) {
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/prisma-pgmq.git
+git clone https://github.com/dvlkv/prisma-pgmq.git
 cd prisma-pgmq
 
 # Install dependencies
