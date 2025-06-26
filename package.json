@@ -1,7 +1,7 @@
 {
-  "name": "prisma-extension-pgmq",
-  "version": "0.1.2",
-  "description": "A Prisma Client extension for PostgreSQL Message Queue (PGMQ) providing type-safe message queue operations",
+  "name": "prisma-pgmq",
+  "version": "0.1.0",
+  "description": "A Prisma PGMQ implementation providing type-safe message queue operations",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -30,16 +30,16 @@
     "database",
     "typescript"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "Dan Volkov <volkv.dan@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/prisma-extension-pgmq.git"
+    "url": "https://github.com/dvlkv/prisma-pgmq.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/prisma-extension-pgmq/issues"
+    "url": "https://github.com/dvlkv/prisma-pgmq/issues"
   },
-  "homepage": "https://github.com/your-username/prisma-extension-pgmq#readme",
+  "homepage": "https://github.com/dvlkv/prisma-pgmq#readme",
   "peerDependencies": {
     "@prisma/client": ">=5.0.0"
   },

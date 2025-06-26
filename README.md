@@ -1,71 +1,36 @@
 # Prisma PGMQ
 
-A TypeScript library that provides a Prisma Client extension for PostgreSQL Message Queue (PGMQ), enabling type-safe message queue operations in your Prisma-based applications.
+A TypeScript library that provides type-safe methods for PostgreSQL Message Queue (PGMQ) operations in your Prisma-based applications.
 
 ## Features
 
 - 🔒 **Type-safe**: Full TypeScript support with proper type definitions
-- 📦 **Easy to use**: Simple API with both functional and class-based interfaces
+- 📦 **Easy to use**: Simple API with functional methods
 - 🔌 **Prisma Integration**: Seamless integration with your existing Prisma setup
 
 ## Installation
 
 ```bash
-npm install prisma-extension-pgmq
+npm install prisma-pgmq
 # or
-pnpm add prisma-extension-pgmq
+pnpm add prisma-pgmq
 # or
-yarn add prisma-extension-pgmq
+yarn add prisma-pgmq
 ```
 
 ### Prerequisites
 
-- PostgreSQL database with PGMQ extension installed
+- PostgreSQL database with the PGMQ extension installed
 - Prisma Client v5.0.0 or higher
 - Node.js 16+ 
 
 ## Quick Start
 
-### Extension API (Recommended)
-
-The Prisma Client extension provides automatic transaction management and seamless integration:
+### Functional API
 
 ```typescript
 import { PrismaClient } from '@prisma/client';
-import { pgmqExtension } from 'prisma-extension-pgmq';
-
-const prisma = new PrismaClient().$extends(pgmqExtension);
-
-// Create a queue
-await prisma.$pgmq.createQueue('my-work-queue');
-
-// Send a message
-const msgId = await prisma.$pgmq.send('my-work-queue', {
-  userId: 123,
-  action: 'send-email',
-  email: 'user@example.com'
-});
-
-// Read and process messages
-const messages = await prisma.$pgmq.read('my-work-queue', 30, 5);
-
-for (const message of messages) {
-  console.log('Processing message:', message.message);
-  
-  // Process the message...
-  
-  // Delete the message when done
-  await prisma.$pgmq.deleteMessage('my-work-queue', message.msg_id);
-}
-```
-
-### Functional API (Advanced Usage)
-
-For advanced usage, you can access the core functions directly within transactions:
-
-```typescript
-import { PrismaClient } from '@prisma/client';
-import { pgmq } from 'prisma-extension-pgmq';
+import { pgmq } from 'prisma-pgmq';
 
 const prisma = new PrismaClient();
 
@@ -287,31 +252,6 @@ interface QueueInfo {
 }
 ```
 
-## Testing
-
-The library includes both unit and integration tests:
-
-```bash
-# Run all tests
-pnpm test
-
-# Run only unit tests (no database required)
-pnpm test:unit
-
-# Run only integration tests (requires database)
-pnpm test:db
-
-# Run tests with coverage
-pnpm test:coverage
-
-# Watch mode for development
-pnpm test:watch
-```
-
-### Setting up Integration Tests
-
-Integration tests require a PostgreSQL database with the PGMQ extension. Set up your test database and configure the connection string in your environment.
-
 ## Best Practices
 
 ### 1. Use Appropriate Visibility Timeouts
@@ -344,79 +284,45 @@ for (const message of messages) {
 }
 ```
 
-### 3. Use Transactions for Related Operations
-Group related PGMQ operations in transactions:
-
-```typescript
-await prisma.$pgmq.transaction(async (pgmq) => {
-  // Send notification message
-  const notificationId = await pgmq.send('notifications', {
-    type: 'order-confirmation',
-    orderId: order.id
-  });
-  
-  // Send processing message
-  const processingId = await pgmq.send('order-processing', {
-    orderId: order.id,
-    notificationId
-  });
-  
-  return { notificationId, processingId };
-});
-```
-
-### 4. Monitor Queue Metrics
-Regularly check queue metrics to ensure healthy operation:
-
-```typescript
-const metrics = await prisma.$pgmq.metrics('my-queue');
-
-if (metrics.queue_length > 1000) {
-  console.warn('Queue is getting full:', metrics.queue_length);
-}
-
-if (metrics.oldest_msg_age_sec && metrics.oldest_msg_age_sec > 3600) {
-  console.warn('Messages are getting stale:', metrics.oldest_msg_age_sec);
-}
-```
-
 ## Examples
 
 ### Basic Worker Pattern
 
 ```typescript
 import { PrismaClient } from '@prisma/client';
-import { pgmqExtension } from 'prisma-extension-pgmq';
+import { pgmq } from 'prisma-pgmq';
 
-const prisma = new PrismaClient().$extends(pgmqExtension);
+const prisma = new PrismaClient();
 
 // Producer
 async function sendTask(taskData: any) {
-  await prisma.$pgmq.send('work-queue', {
-    type: 'process-user-data',
-    data: taskData,
-    timestamp: Date.now()
+  await prisma.$transaction(async (tx) => {
+    await pgmq.send(tx, 'work-queue', {
+      type: 'process-user-data',
+      data: taskData,
+      timestamp: Date.now()
+    });
   });
 }
 
 // Consumer
 async function processMessages() {
   while (true) {
-    const messages = await prisma.$pgmq.readWithPoll('work-queue', 30, 5, 10, 1000);
-    
-    for (const message of messages) {
-      try {
-        // Process the message
-        await handleTask(message.message);
-        
-        // Delete on success
-        await prisma.$pgmq.deleteMessage('work-queue', message.msg_id);
-      } catch (error) {
-        console.error('Task failed:', error);
-        // Archive failed messages for later analysis
-        await prisma.$pgmq.archive('work-queue', message.msg_id);
+    await prisma.$transaction(async (tx) => {
+      const messages = await pgmq.readWithPoll(tx, 'work-queue', 30, 5, 10, 1000);
+      for (const message of messages) {
+        try {
+          // Process the message
+          await handleTask(message.message);
+          // Delete on success
+          await pgmq.deleteMessage(tx, 'work-queue', message.msg_id);
+        } catch (error) {
+          console.error('Task failed:', error);
+          // Archive failed messages for later analysis
+          await pgmq.archive(tx, 'work-queue', message.msg_id);
+        }
       }
-    }
+    });
   }
 }
 
@@ -470,8 +376,8 @@ if (highPriorityMessages.length === 0) {
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/prisma-extension-pgmq.git
-cd prisma-extension-pgmq
+git clone https://github.com/your-username/prisma-pgmq.git
+cd prisma-pgmq
 
 # Install dependencies
 pnpm install

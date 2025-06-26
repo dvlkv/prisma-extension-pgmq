@@ -1,12 +1,8 @@
-// Prisma Client extension (recommended)
-export { default as pgmqExtension } from './pgmq-extension';
-
-// Type exports
-export type {
+export { 
   Task,
   MessageRecord,
-  QueueMetrics,
   QueueInfo,
-} from './pgmq-extension';
-
+  QueueMetrics,
+ } from './pgmq';
+ 
 export * as pgmq from './pgmq';

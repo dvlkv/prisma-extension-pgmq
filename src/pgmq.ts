@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client/extension';
 
 export type Task = Record<string, unknown>;
 
@@ -29,7 +29,7 @@ export interface QueueInfo {
   is_unlogged: boolean;
 }
 
-// Sending Messages
+// I expect that Prisma has `sql` defined
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const PrismaAny = Prisma as any;
 

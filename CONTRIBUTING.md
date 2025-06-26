@@ -15,8 +15,8 @@ Thank you for your interest in contributing to Prisma PGMQ! This document provid
 
 1. **Fork and clone the repository:**
    ```bash
-   git clone https://github.com/your-username/prisma-extension-pgmq.git
-   cd prisma-extension-pgmq
+   git clone https://github.com/your-username/prisma-pgmq.git
+   cd prisma-pgmq
    ```
 
 2. **Install dependencies:**
