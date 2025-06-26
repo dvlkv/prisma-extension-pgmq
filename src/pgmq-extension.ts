@@ -58,7 +58,7 @@ export default Prisma.defineExtension({
              */
             async send(queueName: string, msg: Task, delay?: number | Date): Promise<number> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.send(prisma as any, queueName, msg, delay);
+                return pgmqCore.send(prisma, queueName, msg, delay);
             },
 
             /**
@@ -66,7 +66,7 @@ export default Prisma.defineExtension({
              */
             async sendBatch(queueName: string, msgs: Task[], delay?: number | Date): Promise<number[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.sendBatch(prisma as any, queueName, msgs, delay);
+                return pgmqCore.sendBatch(prisma, queueName, msgs, delay);
             },
 
             /**
@@ -74,7 +74,7 @@ export default Prisma.defineExtension({
              */
             async read(queueName: string, vt: number, qty: number = 1, conditional: Task = {}): Promise<MessageRecord[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.read(prisma as any, queueName, vt, qty, conditional);
+                return pgmqCore.read(prisma, queueName, vt, qty, conditional);
             },
 
             /**
@@ -89,7 +89,7 @@ export default Prisma.defineExtension({
                 conditional: Task = {}
             ): Promise<MessageRecord[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.readWithPoll(prisma as any, queueName, vt, qty, maxPollSeconds, pollIntervalMs, conditional);
+                return pgmqCore.readWithPoll(prisma, queueName, vt, qty, maxPollSeconds, pollIntervalMs, conditional);
             },
 
             /**
@@ -97,7 +97,7 @@ export default Prisma.defineExtension({
              */
             async pop(queueName: string): Promise<MessageRecord[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.pop(prisma as any, queueName);
+                return pgmqCore.pop(prisma, queueName);
             },
 
             /**
@@ -105,7 +105,7 @@ export default Prisma.defineExtension({
              */
             async deleteMessage(queueName: string, msgId: number): Promise<boolean> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.deleteMessage(prisma as any, queueName, msgId);
+                return pgmqCore.deleteMessage(prisma, queueName, msgId);
             },
 
             /**
@@ -113,7 +113,7 @@ export default Prisma.defineExtension({
              */
             async deleteBatch(queueName: string, msgIds: number[]): Promise<number[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.deleteBatch(prisma as any, queueName, msgIds);
+                return pgmqCore.deleteBatch(prisma, queueName, msgIds);
             },
 
             /**
@@ -121,7 +121,7 @@ export default Prisma.defineExtension({
              */
             async purgeQueue(queueName: string): Promise<number> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.purgeQueue(prisma as any, queueName);
+                return pgmqCore.purgeQueue(prisma, queueName);
             },
 
             /**
@@ -129,7 +129,7 @@ export default Prisma.defineExtension({
              */
             async archive(queueName: string, msgId: number): Promise<boolean> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.archive(prisma as any, queueName, msgId);
+                return pgmqCore.archive(prisma, queueName, msgId);
             },
 
             /**
@@ -137,7 +137,7 @@ export default Prisma.defineExtension({
              */
             async archiveBatch(queueName: string, msgIds: number[]): Promise<number[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.archiveBatch(prisma as any, queueName, msgIds);
+                return pgmqCore.archiveBatch(prisma, queueName, msgIds);
             },
 
             /**
@@ -145,7 +145,7 @@ export default Prisma.defineExtension({
              */
             async createQueue(queueName: string): Promise<void> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.createQueue(prisma as any, queueName);
+                return pgmqCore.createQueue(prisma, queueName);
             },
 
             /**
@@ -157,7 +157,7 @@ export default Prisma.defineExtension({
                 retentionInterval: string = '100000'
             ): Promise<void> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.createPartitionedQueue(prisma as any, queueName, partitionInterval, retentionInterval);
+                return pgmqCore.createPartitionedQueue(prisma, queueName, partitionInterval, retentionInterval);
             },
 
             /**
@@ -165,7 +165,7 @@ export default Prisma.defineExtension({
              */
             async createUnloggedQueue(queueName: string): Promise<void> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.createUnloggedQueue(prisma as any, queueName);
+                return pgmqCore.createUnloggedQueue(prisma, queueName);
             },
 
             /**
@@ -173,7 +173,7 @@ export default Prisma.defineExtension({
              */
             async detachArchive(queueName: string): Promise<void> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.detachArchive(prisma as any, queueName);
+                return pgmqCore.detachArchive(prisma, queueName);
             },
 
             /**
@@ -181,7 +181,7 @@ export default Prisma.defineExtension({
              */
             async dropQueue(queueName: string): Promise<boolean> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.dropQueue(prisma as any, queueName);
+                return pgmqCore.dropQueue(prisma, queueName);
             },
 
             /**
@@ -189,7 +189,7 @@ export default Prisma.defineExtension({
              */
             async setVt(queueName: string, msgId: number, vtOffset: number): Promise<MessageRecord> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.setVt(prisma as any, queueName, msgId, vtOffset);
+                return pgmqCore.setVt(prisma, queueName, msgId, vtOffset);
             },
 
             /**
@@ -197,7 +197,7 @@ export default Prisma.defineExtension({
              */
             async listQueues(): Promise<QueueInfo[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.listQueues(prisma as any);
+                return pgmqCore.listQueues(prisma);
             },
 
             /**
@@ -205,7 +205,7 @@ export default Prisma.defineExtension({
              */
             async metrics(queueName: string): Promise<QueueMetrics> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.metrics(prisma as any, queueName);
+                return pgmqCore.metrics(prisma, queueName);
             },
 
             /**
@@ -213,7 +213,7 @@ export default Prisma.defineExtension({
              */
             async metricsAll(): Promise<QueueMetrics[]> {
                 const prisma = Prisma.getExtensionContext(this);
-                return pgmqCore.metricsAll(prisma as any);
+                return pgmqCore.metricsAll(prisma);
             }
         },
     },

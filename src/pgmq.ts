@@ -30,12 +30,13 @@ export interface QueueInfo {
 }
 
 // Sending Messages
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const PrismaAny = Prisma as any;
+
 export async function send(tx: Prisma.TransactionClient, queueName: string, msg: Task, delay?: number | Date): Promise<number> {
     const delayRepr = typeof delay === 'number' ? PrismaAny.sql`${delay}::integer` : PrismaAny.sql`${delay}`;
     const delaySql = delay ? PrismaAny.sql`, ${delayRepr}` : PrismaAny.sql``;
-    let result: { send: number }[] = await tx.$queryRaw`SELECT pgmq.send(${queueName}, ${msg}${delaySql})`;
+    const result: { send: number }[] = await tx.$queryRaw`SELECT pgmq.send(${queueName}, ${msg}${delaySql})`;
     const firstResult = result[0];
     if (!firstResult) {
         throw new Error('No result returned from pgmq.send');
@@ -46,7 +47,7 @@ export async function send(tx: Prisma.TransactionClient, queueName: string, msg:
 export async function sendBatch(tx: Prisma.TransactionClient, queueName: string, msgs: Task[], delay?: number | Date): Promise<number[]> {
     const delayRepr = typeof delay === 'number' ? PrismaAny.sql`${delay}::integer` : PrismaAny.sql`${delay}`;
     const delaySql = delay ? PrismaAny.sql`, ${delayRepr}` : PrismaAny.sql``;
-    let result: { send_batch: number }[] = await tx.$queryRaw`SELECT pgmq.send_batch(${queueName}, ${msgs}${delaySql})`;
+    const result: { send_batch: number }[] = await tx.$queryRaw`SELECT pgmq.send_batch(${queueName}, ${msgs}${delaySql})`;
     return result.map(a => a.send_batch);
 }
 
@@ -171,7 +172,7 @@ export async function listQueues(tx: Prisma.TransactionClient): Promise<QueueInf
 }
 
 export async function metrics(tx: Prisma.TransactionClient, queueName: string): Promise<QueueMetrics> {
-    let result: QueueMetrics[] = await tx.$queryRaw`SELECT * FROM pgmq.metrics(${queueName})`;
+    const result: QueueMetrics[] = await tx.$queryRaw`SELECT * FROM pgmq.metrics(${queueName})`;
     const firstResult = result[0];
     if (!firstResult) {
         throw new Error('No result returned from pgmq.metrics');
