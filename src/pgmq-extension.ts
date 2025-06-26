@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client/extension';
 import * as pgmqCore from './pgmq';
 
 export type Task = Record<string, unknown>;
