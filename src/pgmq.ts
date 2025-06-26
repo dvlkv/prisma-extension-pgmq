@@ -31,16 +31,21 @@ export interface QueueInfo {
 
 // Sending Messages
 
+const PrismaAny = Prisma as any;
 export async function send(tx: Prisma.TransactionClient, queueName: string, msg: Task, delay?: number | Date): Promise<number> {
-    const delayRepr = typeof delay === 'number' ? Prisma.sql`${delay}::integer` : Prisma.sql`${delay}`;
-    const delaySql = delay ? Prisma.sql`, ${delayRepr}` : Prisma.sql``;
+    const delayRepr = typeof delay === 'number' ? PrismaAny.sql`${delay}::integer` : PrismaAny.sql`${delay}`;
+    const delaySql = delay ? PrismaAny.sql`, ${delayRepr}` : PrismaAny.sql``;
     let result: { send: number }[] = await tx.$queryRaw`SELECT pgmq.send(${queueName}, ${msg}${delaySql})`;
-    return result[0].send;
+    const firstResult = result[0];
+    if (!firstResult) {
+        throw new Error('No result returned from pgmq.send');
+    }
+    return firstResult.send;
 }
 
 export async function sendBatch(tx: Prisma.TransactionClient, queueName: string, msgs: Task[], delay?: number | Date): Promise<number[]> {
-    const delayRepr = typeof delay === 'number' ? Prisma.sql`${delay}::integer` : Prisma.sql`${delay}`;
-    const delaySql = delay ? Prisma.sql`, ${delayRepr}` : Prisma.sql``;
+    const delayRepr = typeof delay === 'number' ? PrismaAny.sql`${delay}::integer` : PrismaAny.sql`${delay}`;
+    const delaySql = delay ? PrismaAny.sql`, ${delayRepr}` : PrismaAny.sql``;
     let result: { send_batch: number }[] = await tx.$queryRaw`SELECT pgmq.send_batch(${queueName}, ${msgs}${delaySql})`;
     return result.map(a => a.send_batch);
 }
@@ -77,7 +82,11 @@ export function pop(tx: Prisma.TransactionClient, queueName: string): Promise<Me
 
 export async function deleteMessage(tx: Prisma.TransactionClient, queueName: string, msgId: number): Promise<boolean> {
     const result: { delete: boolean }[] = await tx.$queryRaw`SELECT pgmq.delete(${queueName}, ${msgId}::integer)`;
-    return result[0].delete;
+    const firstResult = result[0];
+    if (!firstResult) {
+        throw new Error('No result returned from pgmq.delete');
+    }
+    return firstResult.delete;
 }
 
 export async function deleteBatch(tx: Prisma.TransactionClient, queueName: string, msgIds: number[]): Promise<number[]> {
@@ -87,12 +96,20 @@ export async function deleteBatch(tx: Prisma.TransactionClient, queueName: strin
 
 export async function purgeQueue(tx: Prisma.TransactionClient, queueName: string): Promise<number> {
     const result: { purge_queue: number }[] = await tx.$queryRaw`SELECT pgmq.purge_queue(${queueName})`;
-    return result[0].purge_queue;
+    const firstResult = result[0];
+    if (!firstResult) {
+        throw new Error('No result returned from pgmq.purge_queue');
+    }
+    return firstResult.purge_queue;
 }
 
 export async function archive(tx: Prisma.TransactionClient, queueName: string, msgId: number): Promise<boolean> {
     const result: { archive: boolean }[] = await tx.$queryRaw`SELECT pgmq.archive(${queueName}, ${msgId}::integer)`;
-    return result[0].archive;
+    const firstResult = result[0];
+    if (!firstResult) {
+        throw new Error('No result returned from pgmq.archive');
+    }
+    return firstResult.archive;
 }
 
 export async function archiveBatch(tx: Prisma.TransactionClient, queueName: string, msgIds: number[]): Promise<number[]> {
@@ -125,7 +142,11 @@ export async function detachArchive(tx: Prisma.TransactionClient, queueName: str
 
 export async function dropQueue(tx: Prisma.TransactionClient, queueName: string): Promise<boolean> {
     const result: { drop_queue: boolean }[] = await tx.$queryRaw`SELECT pgmq.drop_queue(${queueName})`;
-    return result[0].drop_queue;
+    const firstResult = result[0];
+    if (!firstResult) {
+        throw new Error('No result returned from pgmq.drop_queue');
+    }
+    return firstResult.drop_queue;
 }
 
 // Utilities
@@ -137,7 +158,11 @@ export async function setVt(
     vtOffset: number
 ): Promise<MessageRecord> {
     const result: MessageRecord[] = await tx.$queryRaw`SELECT * FROM pgmq.set_vt(${queueName}, ${msgId}::integer, ${vtOffset}::integer)`;
-    return result[0];
+    const firstResult = result[0];
+    if (!firstResult) {
+        throw new Error('No result returned from pgmq.set_vt');
+    }
+    return firstResult;
 }
 
 export async function listQueues(tx: Prisma.TransactionClient): Promise<QueueInfo[]> {
@@ -147,7 +172,11 @@ export async function listQueues(tx: Prisma.TransactionClient): Promise<QueueInf
 
 export async function metrics(tx: Prisma.TransactionClient, queueName: string): Promise<QueueMetrics> {
     let result: QueueMetrics[] = await tx.$queryRaw`SELECT * FROM pgmq.metrics(${queueName})`;
-    return result[0];
+    const firstResult = result[0];
+    if (!firstResult) {
+        throw new Error('No result returned from pgmq.metrics');
+    }
+    return firstResult;
 }
 
 export async function metricsAll(tx: Prisma.TransactionClient): Promise<QueueMetrics[]> {
