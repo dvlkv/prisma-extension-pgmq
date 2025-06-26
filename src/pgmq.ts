@@ -31,9 +31,10 @@ export interface QueueInfo {
 
 // Sending Messages
 
+const PrismaAny = Prisma as any;
 export async function send(tx: Prisma.TransactionClient, queueName: string, msg: Task, delay?: number | Date): Promise<number> {
-    const delayRepr = typeof delay === 'number' ? Prisma.sql`${delay}::integer` : Prisma.sql`${delay}`;
-    const delaySql = delay ? Prisma.sql`, ${delayRepr}` : Prisma.sql``;
+    const delayRepr = typeof delay === 'number' ? PrismaAny.sql`${delay}::integer` : PrismaAny.sql`${delay}`;
+    const delaySql = delay ? PrismaAny.sql`, ${delayRepr}` : PrismaAny.sql``;
     let result: { send: number }[] = await tx.$queryRaw`SELECT pgmq.send(${queueName}, ${msg}${delaySql})`;
     const firstResult = result[0];
     if (!firstResult) {
@@ -43,8 +44,8 @@ export async function send(tx: Prisma.TransactionClient, queueName: string, msg:
 }
 
 export async function sendBatch(tx: Prisma.TransactionClient, queueName: string, msgs: Task[], delay?: number | Date): Promise<number[]> {
-    const delayRepr = typeof delay === 'number' ? Prisma.sql`${delay}::integer` : Prisma.sql`${delay}`;
-    const delaySql = delay ? Prisma.sql`, ${delayRepr}` : Prisma.sql``;
+    const delayRepr = typeof delay === 'number' ? PrismaAny.sql`${delay}::integer` : PrismaAny.sql`${delay}`;
+    const delaySql = delay ? PrismaAny.sql`, ${delayRepr}` : PrismaAny.sql``;
     let result: { send_batch: number }[] = await tx.$queryRaw`SELECT pgmq.send_batch(${queueName}, ${msgs}${delaySql})`;
     return result.map(a => a.send_batch);
 }

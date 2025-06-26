@@ -5,16 +5,15 @@ module.exports = {
     sourceType: 'module',
     project: './tsconfig.json',
   },
-  plugins: ['@typescript-eslint'],
+  plugins: ['typescript-eslint'],
   extends: [
     'eslint:recommended',
-    '@typescript-eslint/recommended',
-    '@typescript-eslint/recommended-requiring-type-checking',
+    'typescript-eslint/recommended',
+    'typescript-eslint/recommended-requiring-type-checking',
   ],
   root: true,
   env: {
     node: true,
-    jest: true,
   },
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',

@@ -35,7 +35,7 @@ export interface QueueInfo {
  * @example
  * ```typescript
  * import { PrismaClient } from '@prisma/client';
- * import { pgmqExtension } from 'prisma-pgmq';
+ * import { pgmqExtension } from 'prisma-extension-pgmq';
  * 
  * const prisma = new PrismaClient().$extends(pgmqExtension);
  * 

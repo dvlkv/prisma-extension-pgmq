@@ -8,3 +8,5 @@ export type {
   QueueMetrics,
   QueueInfo,
 } from './pgmq-extension';
+
+export * as pgmq from './pgmq';
