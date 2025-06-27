@@ -78,7 +78,12 @@ const msgId = await pgmq.send(tx, 'my-queue', { data: 'hello' });
 const msgId = await pgmq.send(tx, 'my-queue', { data: 'hello' }, 30);
 
 // Send with specific time
-tx, 'my-queue', { data: 'hello' }, new Date('2024-01-01T10:00:00Z'));
+const msgId = await pgmq.send(
+  tx, 
+  'my-queue', 
+  { data: 'hello' }, 
+  new Date('2024-01-01T10:00:00Z')
+);
 ```
 
 #### `sendBatch(tx, queueName, messages, delay?)`
@@ -262,38 +267,6 @@ interface QueueInfo {
   created_at: Date;
   is_partitioned: boolean;
   is_unlogged: boolean;
-}
-```
-
-## Best Practices
-
-### 1. Use Appropriate Visibility Timeouts
-Choose visibility timeouts based on your message processing time:
-
-```typescript
-// For quick operations (30 seconds)
-const messages = await prisma.$pgmq.read('quick-tasks', 30);
-
-// For longer operations (5 minutes)
-const messages = await prisma.$pgmq.read('heavy-tasks', 300);
-```
-
-### 2. Handle Message Processing Failures
-Always delete or archive messages after successful processing:
-
-```typescript
-const messages = await prisma.$pgmq.read('my-queue', 30, 10);
-
-for (const message of messages) {
-  try {
-    await processMessage(message.message);
-    await prisma.$pgmq.deleteMessage('my-queue', message.msg_id);
-  } catch (error) {
-    // Handle error - message will become visible again after timeout
-    console.error('Failed to process message:', error);
-    // Optionally archive failed messages
-    await prisma.$pgmq.archive('my-queue', message.msg_id);
-  }
 }
 ```
 
