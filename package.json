@@ -1,6 +1,6 @@
 {
   "name": "prisma-pgmq",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Prisma PGMQ implementation providing type-safe message queue operations",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
